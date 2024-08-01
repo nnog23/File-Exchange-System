@@ -108,9 +108,10 @@ def handle_client(client_socket):
             
             elif data.startswith("BROADCAST"):
                 _, message = data.split(maxsplit=1)  # Extract broadcast message
-                alias = client_list[client_socket]['alias']
-                message = f"[BROADCAST] From {alias}: {message}\n"
-                
+                sender_alias = client_list[client_socket]['alias']
+                message = f"[BROADCAST] From {sender_alias}: {message}\n"
+                client_socket.sendall(f"Message broadcasted.".encode())
+                print(f"{sender_alias} broadcasted a message.")
                 for socket in client_list:
                     if socket != client_socket:
                         try:
