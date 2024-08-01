@@ -61,6 +61,31 @@ def register_action(sock, alias):
     print(response)
     print("Register command executed!")
 
+def getFile(sock, fileName):
+    # Send a request to the server to get the file
+    request = f"GET_FILE {fileName}"
+    sock.sendall(request.encode())
+
+    # Receive the response from the server
+    # Assume the server sends a single string with file names separated by newline characters
+    response = sock.recv(4096).decode()
+            
+    # Split the data into file name and contents
+    if '\n' in response:
+        file_name, file_contents = response.split('\n', 1)  # Split into file name and contents
+        print(file_contents)
+        # Save the file
+        with open(file_name, "w") as file:
+            file.write(file_contents)
+
+        print(f"Received file: {file_name}")
+        # formatted_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # response = f"{alias}<{formatted_time}>: Uploaded {file_name}"
+        response = f"Uploaded file: {file_name}"
+        sock.send(response.encode())
+    print("Get command executed!")
+
+
 
 # Creating Client Socket 
 if __name__ == '__main__': 
@@ -93,6 +118,9 @@ if __name__ == '__main__':
 
         elif command == '/dir':
             dir(sock)
+
+        elif command == '/get':
+            getFile(sock, clientinput[1])
 
         elif command == '/help':
             print("Available commands:\n/join - Executes the join action\n/hello - Executes the hello action\n/exit - Exits the program\n/help - Shows this help message")

@@ -49,7 +49,34 @@ def handle_client(client_socket):
                     formatted_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     response = f"{alias}<{formatted_time}>: Uploaded {file_name}"
                     client_socket.send(response.encode())
-                else:
+
+            elif data.startswith("GET_FILE"):
+                
+                _, file_name = data.split(maxsplit=1)  # Extract file name
+                try:
+                    # Reading file and sending data to client
+
+                    file = open(file_name, "r") 
+                    data = file.read()
+                    if not data:
+                        print("Nothing here.")
+                    # while data: 
+                            # sock.send(str(data).encode()) 
+                            # data = file.read() 
+                        # File is closed after data is sent 
+                    file.close()
+                    request = f"{file_name}\n{data}"
+                    client_socket.sendall(request.encode())
+                    response = client_socket.recv(4096).decode()
+
+                    print(response)
+
+                except IOError: 
+                    print('You entered an invalid filename! Please enter a valid name') 
+
+
+            
+            else:
                     print(f"Unknown command: {data}")
 
     finally:
