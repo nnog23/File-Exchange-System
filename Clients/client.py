@@ -11,12 +11,10 @@ def leave_action(sock):
     sock.close()
     print("Leave command executed!")
 
-def register_action():
-    print("Register command executed!")
-
 def storeFile(fileName):
     try: 
     # Reading file and sending data to server 
+
         file = open(fileName, "r") 
         data = file.read()
         if not data:
@@ -26,6 +24,9 @@ def storeFile(fileName):
                 data = file.read() 
             # File is closed after data is sent 
         file.close()
+        
+        request = f"REGISTER_ALIAS {data} {fileName}"
+
 
     except IOError: 
         print('You entered an invalid filename! Please enter a valid name') 
@@ -45,6 +46,18 @@ def dir(sock):
     print("Files in the server directory:")
     print(response)
     print("Dir command executed!")
+
+def register_action(sock, alias):
+    # Send a request to the server to list the directory
+    request = f"REGISTER_ALIAS {alias}"
+    sock.sendall(request.encode())
+
+    # Receive the response from the server
+    # Assume the server sends a single string with file names separated by newline characters
+    response = sock.recv(4096).decode()
+
+    print(response)
+    print("Register command executed!")
 
 
 # Creating Client Socket 
@@ -70,8 +83,8 @@ if __name__ == '__main__':
 
         elif command == '/register':
             userHandle = clientinput[1]
+            register_action(sock, clientinput[1])
             print("Your userHandle is: ", userHandle)
-            print("Register command executed!")
 
         elif command == '/store':
             storeFile(clientinput[1])
