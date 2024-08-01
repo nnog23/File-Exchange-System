@@ -118,7 +118,7 @@ def unicast(sock, target_alias, message):
         # Send a request to the server to unicast a message
         request = f"UNICAST {target_alias} {message}"
         sock.sendall(request.encode())
-
+    
         # Receive the response from the server
         response = sock.recv(4096).decode()  # Adjust buffer size as needed
         print(response)  # "[UNICAST SENT] to: {alias} message: {message}"
@@ -128,6 +128,15 @@ def unicast(sock, target_alias, message):
     except Exception as e:
         print(f"Unexpected error: {e}")
 
+def broadcast_action(sock, message):
+    try:
+        # Send a request to the server to broadcast a message
+        request = f"BROADCAST {message}"
+        sock.sendall(request.encode())
+
+    except (ConnectionResetError, ConnectionRefusedError, BrokenPipeError) as e:
+        print("Error: Connection to the Server Lost.")   
+
 def receive_messages(sock):
     """Check for incoming messages from the server using select."""
     try:
@@ -136,12 +145,11 @@ def receive_messages(sock):
         if sock in readable:
             message = sock.recv(4096).decode()
             if message:
-                print(f"{message}")
+                print(f"\n{message}")
     except (ConnectionResetError, ConnectionRefusedError, BrokenPipeError):
         print("Connection lost.")
     except Exception as e:
         print(f"Error receiving messages: {e}")
-
 
 # Creating Client Socket 
 if __name__ == '__main__': 
@@ -220,6 +228,16 @@ if __name__ == '__main__':
                 print("Error: Unicast Request failed. Please register first.")
             else:
                 print("Error: Unicast Request Failed. Please connect to the server first.")
+        elif command == '/broadcast':
+            if (connected == 1 and registered == 1):
+                try:
+                    broadcast_action(sock, clientinput[1])    
+                except Exception as e:
+                    print("Error: Command parameters do not match or is not allowed.")
+            elif (connected == 1 and registered == 0):
+                print("Error: Broadcast Request failed. Please register first.")
+            else:
+                print("Error: Broadcast Request Failed. Please connect to the server first.")
 
         elif command == '/viewmessages':
             if (connected == 1 and registered == 1):
@@ -234,7 +252,7 @@ if __name__ == '__main__':
 
                 
         elif command == '/?':
-            print("Available commands:\n/join <server_ip_add> <port> - Connects to the server application\n/leave - Disconnects from the server application\n/register <handle> - Registers a unique handle or alias\n/store <filename> - Send file to server\n/dir - Request directory file list from a server\n/get <filename> - Fetches a file from a server\n/unicast <target_alias> <message> - Sends message to target user\n/viewmessages - Views any messages received from unicast.\n/? - Shows this help message")
+            print("Available commands:\n/join <server_ip_add> <port> - Connects to the server application\n/leave - Disconnects from the server application\n/register <handle> - Registers a unique handle or alias\n/store <filename> - Send file to server\n/dir - Request directory file list from a server\n/get <filename> - Fetches a file from a server\n/unicast <target_alias> <message> - Sends message to target user\n/broadcast <message> - Sends message to every other user\n/viewmessages - Views any messages received from unicast and broadcast.\n/? - Shows this help message")
 
         else:
             print("Error: Command not found.")

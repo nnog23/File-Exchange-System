@@ -106,8 +106,17 @@ def handle_client(client_socket):
                     # Inform the sender that the target client was not found
                     client_socket.sendall(f"Error: User {target_alias} not found.".encode())
             
-            else:
-                    print(f"Unknown command: {data}")
+            elif data.startswith("BROADCAST"):
+                _, message = data.split(maxsplit=1)  # Extract broadcast message
+                alias = client_list[client_socket]['alias']
+                message = f"[BROADCAST] From {alias}: {message}\n"
+                
+                for socket in client_list:
+                    if socket != client_socket:
+                        try:
+                            socket.sendall(message.encode())
+                        except Exception as e:
+                            print(f"Error sending broadcast message to client {client_socket}: {e}")
 
     finally:
         # Remove the client from the dictionary on disconnection
