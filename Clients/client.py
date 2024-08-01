@@ -2,6 +2,7 @@ import socket
 import argparse
 
 connected = 0
+registered = 0
 
 def join_action(sock, host, port):
     global connected
@@ -17,8 +18,15 @@ def join_action(sock, host, port):
 
 
 def leave_action(sock):
-    sock.close()
-    print("Connection closed. Thank you!")
+    try:
+        global connected
+        global registered
+        connected = 0
+        registered = 0
+        sock.close()
+        print("Connection closed. Thank you!")
+    except (ConnectionResetError, ConnectionRefusedError, BrokenPipeError) as e:
+        print("Error: Connection to the Server Lost.")
 
 def storeFile(fileName):
     try: 
@@ -38,59 +46,70 @@ def storeFile(fileName):
         response = sock.recv(4096).decode()
 
         print(response)
-
+    except (ConnectionResetError, ConnectionRefusedError, BrokenPipeError) as e:
+        print("Error: Connection to the Server Lost.")
     except IOError: 
         print('Error: File not found.') 
 
 def dir(sock):
-    # Send a request to the server to list the directory
-    request = "LIST_DIR"
-    sock.sendall(request.encode())
+    try: 
+        # Send a request to the server to list the directory
+        request = "LIST_DIR"
+        sock.sendall(request.encode())
 
-    # Receive the response from the server
-    # Assume the server sends a single string with file names separated by newline characters
-    response = sock.recv(4096).decode()
+        # Receive the response from the server
+        # Assume the server sends a single string with file names separated by newline characters
+        response = sock.recv(4096).decode()
 
-    # Print the received list of files
-    print("Files in the server directory:")
-    print(response)
-    print("Dir command executed!")
+        # Print the received list of files
+        print("Server Directory")
+        print(response)
+    except (ConnectionResetError, ConnectionRefusedError, BrokenPipeError) as e:
+        print("Error: Connection to the Server Lost.")
 
 def register_action(sock, alias):
-    # Send a request to the server to list the directory
-    request = f"REGISTER_ALIAS {alias}"
-    sock.sendall(request.encode())
+    try:
+        global registered
+        # Send a request to the server to list the directory
+        request = f"REGISTER_ALIAS {alias}"
+        sock.sendall(request.encode())
 
-    # Receive the response from the server
-    # Assume the server sends a single string with file names separated by newline characters
-    response = sock.recv(4096).decode()
-    print(response)
+        # Receive the response from the server
+        # Assume the server sends a single string with file names separated by newline characters
+        response = sock.recv(4096).decode()
+        registered = 1
+        print(response)
+    except (ConnectionResetError, ConnectionRefusedError, BrokenPipeError) as e:
+        print("Error: Connection to the Server Lost.")
 
 
 def getFile(sock, fileName):
-    # Send a request to the server to get the file
-    request = f"GET_FILE {fileName}"
-    sock.sendall(request.encode())
+    try:
+        # Send a request to the server to get the file
+        request = f"GET_FILE {fileName}"
+        sock.sendall(request.encode())
 
-    # Receive the response from the server
-    # Assume the server sends a single string with file names separated by newline characters
-    response = sock.recv(4096).decode()
-            
-    # Split the data into file name and contents
-    if '\n' in response:
-        file_name, file_contents = response.split('\n', 1)  # Split into file name and contents
-        # Save the file
-        with open(file_name, "w") as file:
-            file.write(file_contents)
+        # Receive the response from the server
+        # Assume the server sends a single string with file names separated by newline characters
+        response = sock.recv(4096).decode()
+                
+        # Split the data into file name and contents
+        if '\n' in response:
+            file_name, file_contents = response.split('\n', 1)  # Split into file name and contents
+            # Save the file
+            with open(file_name, "w") as file:
+                file.write(file_contents)
 
-        print(f"File received from Server: {file_name}")
-        # formatted_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # response = f"{alias}<{formatted_time}>: Uploaded {file_name}"
-        response = f"Uploaded file: {file_name}"
-        sock.send(response.encode())
+            print(f"File received from Server: {file_name}")
+            # formatted_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            # response = f"{alias}<{formatted_time}>: Uploaded {file_name}"
+            response = f"Uploaded file: {file_name}"
+            sock.send(response.encode())
 
-    else:
-        print(response)
+        else:
+            print(response)
+    except (ConnectionResetError, ConnectionRefusedError, BrokenPipeError) as e:
+        print("Error: Connection to the Server Lost.")
 
 
 
@@ -99,7 +118,6 @@ if __name__ == '__main__':
 
     # host = '127.0.0.1'
     # port = 8080
-    userHandle = "ClientX"
   
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 
@@ -130,27 +148,34 @@ if __name__ == '__main__':
                     print("Error: Command parameters do not match or is not allowed.")
             else:
                 print("Error: Registration Failed. Please connect to the server first.")
+
         elif command == '/store':
-            if (connected == 1):
+            if (connected == 1 and registered == 1):
                 try:
                     storeFile(clientinput[1])
                 except Exception as e:
                     print("Error: Command parameters do not match or is not allowed.")
+            elif (connected == 1 and registered == 0):
+                print("Error: Store Request failed. Please register first.")
             else:
                 print("Error: Store Request failed. Please connect to the server first.")
 
         elif command == '/dir':
-            if (connected == 1):
+            if (connected == 1 and registered == 1):
                 dir(sock)
+            elif (connected == 1 and registered == 0):
+                print("Error: Directory Request failed. Please register first.")
             else:
                 print("Error: Directory Request failed. Please connect to the server first.")
                 
         elif command == '/get':
-            if (connected == 1):
+            if (connected == 1 and registered == 1):
                 try:
                     getFile(sock, clientinput[1])
                 except Exception as e:
                     print("Error: Command parameters do not match or is not allowed.")
+            elif (connected == 1 and registered == 0):
+                print("Error: Get Request failed. Please register first.")
             else:
                 print("Error: Get Request Failed. Please connect to the server first.")
                 
