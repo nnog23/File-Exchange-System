@@ -19,14 +19,16 @@ def storeFile(fileName):
         data = file.read()
         if not data:
             print("Nothing here.")
-        while data: 
-                sock.send(str(data).encode()) 
-                data = file.read() 
+        # while data: 
+                # sock.send(str(data).encode()) 
+                # data = file.read() 
             # File is closed after data is sent 
         file.close()
-        
-        request = f"REGISTER_ALIAS {data} {fileName}"
+        request = f"STORE_FILE {fileName}\n{data}"
+        sock.sendall(request.encode())
+        response = sock.recv(4096).decode()
 
+        print(response)
 
     except IOError: 
         print('You entered an invalid filename! Please enter a valid name') 

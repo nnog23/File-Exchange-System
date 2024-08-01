@@ -1,6 +1,7 @@
 import socket
 import threading
 import os
+import datetime
 
 # Initialize client_list as a dictionary
 client_list = {}
@@ -8,7 +9,7 @@ client_list = {}
 def handle_client(client_socket):
     try:
         while True:
-            data = client_socket.recv(1024).decode()
+            data = client_socket.recv(4096).decode()
             if not data:
                 break
 
@@ -30,10 +31,26 @@ def handle_client(client_socket):
                 response = "\n".join(files)
                 client_socket.send(response.encode())
 
-            elif data == "STORE_FILE":
-                client_list[client_socket]['alias']
-            else:
-                print(f"Unknown command: {data}")
+            elif data.startswith("STORE_FILE"):
+                
+                alias = client_list[client_socket]['alias']
+            
+                _, file_data = data.split(' ', 1)  # Split to remove command
+            
+            # Split the data into file name and contents
+                if '\n' in file_data:
+                    file_name, file_contents = file_data.split('\n', 1)  # Split into file name and contents
+                    print(file_contents)
+                    # Save the file
+                    with open(file_name, "w") as file:
+                        file.write(file_contents)
+
+                    print(f"Received file: {file_name}")
+                    formatted_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    response = f"{alias}<{formatted_time}>: Uploaded {file_name}"
+                    client_socket.send(response.encode())
+                else:
+                    print(f"Unknown command: {data}")
 
     finally:
         # Remove the client from the dictionary on disconnection
