@@ -102,7 +102,8 @@ if __name__ == '__main__':
         elif command == '/dir':
             dir(sock)
 
-        elif command == '/help':
-            print("Available commands:\n/join - Executes the join action\n/hello - Executes the hello action\n/exit - Exits the program\n/help - Shows this help message")
+        elif command == '/?':
+            print("Available commands:\n/join <server_ip_add> <port> - Connects to the server application\n/leave - Disconnects from the server application\n/register <handle> - Registers a unique handle or alias\n/store <filename> - Send file to server\n/dir - Request directory file list from a server\n/get <filename> - Fetches a file from a server\n/? - Shows this help message")
         else:
             print("Error: Command not found.")
+
