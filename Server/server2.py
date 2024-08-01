@@ -15,15 +15,20 @@ def handle_client(client_socket):
 
             if data.startswith("REGISTER_ALIAS"):
                 _, alias = data.split(maxsplit=1)  # Extract alias
+
+                alias_exists = any(client['alias'] == alias for client in client_list.values())
+                if alias_exists:
+                    response = "Error: Registration failed. Handle or alias already exists."
+                    client_socket.send(response.encode())
+                else:     
                 # Update the alias for this client
-                if client_socket in client_list:
-                    client_list[client_socket]['alias'] = alias
-                    response = f"Alias registered as {alias}"
-                    client_socket.send(response.encode())
-                    print(client_list)
-                else:
-                    response = "Error: Client not found"
-                    client_socket.send(response.encode())
+                    if client_socket in client_list:
+                        client_list[client_socket]['alias'] = alias
+                        response = f"Welcome {alias}!"
+                        client_socket.send(response.encode())
+                    else:
+                        response = "Error: Client not found"
+                        client_socket.send(response.encode())
 
             elif data == "LIST_DIR":
                 print('Getting directory')
@@ -40,7 +45,6 @@ def handle_client(client_socket):
             # Split the data into file name and contents
                 if '\n' in file_data:
                     file_name, file_contents = file_data.split('\n', 1)  # Split into file name and contents
-                    print(file_contents)
                     # Save the file
                     with open(file_name, "w") as file:
                         file.write(file_contents)
@@ -62,7 +66,7 @@ def handle_client(client_socket):
 def main():
     host = '127.0.0.1'
     port = 8080
-    total_clients = 3
+    total_clients = 4
 
     # Creating Server Socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -2,14 +2,19 @@ import socket
 import argparse
 
 def join_action(sock, host, port):
-
+    try:
     # Connecting with Server 
-    sock.connect((host, int(port))) 
-    print("Join command executed!")
+        sock.connect((host, int(port))) 
+        print("Connection to the File Exchange Server is successful!")
     
+    except (socket.error, ValueError) as e:
+        print("Error: Connection to the Server has failed! Please check IP Address and Port Number.")
+   
+
+
 def leave_action(sock):
     sock.close()
-    print("Leave command executed!")
+    print("Connection closed. Thank you!")
 
 def storeFile(fileName):
     try: 
@@ -31,9 +36,7 @@ def storeFile(fileName):
         print(response)
 
     except IOError: 
-        print('You entered an invalid filename! Please enter a valid name') 
-
-    print("Store command executed!")
+        print('Error: File not found.') 
 
 def dir(sock):
     # Send a request to the server to list the directory
@@ -57,9 +60,8 @@ def register_action(sock, alias):
     # Receive the response from the server
     # Assume the server sends a single string with file names separated by newline characters
     response = sock.recv(4096).decode()
-
     print(response)
-    print("Register command executed!")
+
 
 
 # Creating Client Socket 
@@ -77,17 +79,23 @@ if __name__ == '__main__':
         command = clientinput[0]
 
         if command == '/join':
-            print(command)
-            join_action(sock, clientinput[1], clientinput[2])
+            try:
+                join_action(sock, clientinput[1], clientinput[2])
+            except Exception as e:
+                print("Error: Command parameters do not match or is not allowed.")
 
         elif command == '/leave':
-            leave_action(sock)
+            try:
+                sock.send(b'')
+                leave_action(sock)
+            except Exception as e:
+                print("Error: Disconnection failed. Please connect to the server first.")
 
         elif command == '/register':
-            userHandle = clientinput[1]
+            try:
             register_action(sock, clientinput[1])
-            print("Your userHandle is: ", userHandle)
-
+            except Exception as e:
+                print("Error: Command parameters do not match or is not allowed.")
         elif command == '/store':
             storeFile(clientinput[1])
 
@@ -97,22 +105,4 @@ if __name__ == '__main__':
         elif command == '/help':
             print("Available commands:\n/join - Executes the join action\n/hello - Executes the hello action\n/exit - Exits the program\n/help - Shows this help message")
         else:
-            print("Unknown command. Type /help for a list of available commands.")
-
-'''
-        filename = input('Input filename you want to send: ') 
-        try: 
-           # Reading file and sending data to server 
-            fi = open(filename, "r") 
-            data = fi.read() 
-            if not data: 
-                break
-            while data: 
-                sock.send(str(data).encode()) 
-                data = fi.read() 
-            # File is closed after data is sent 
-            fi.close() 
-
-        except IOError: 
-            print('You entered an invalid filename! Please enter a valid name') 
-'''
+            print("Error: Command not found.")

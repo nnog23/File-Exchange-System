@@ -26,11 +26,18 @@ if __name__ == '__main__':
     sock.listen(totalclient) 
     # Establishing Connections 
     connections = [] 
+    client_list = {}
     print('Initiating clients') 
     for i in range(totalclient): 
         conn = sock.accept() 
-        connections.append(conn) 
+        connections.append(conn)
         print('Connected with client', i+1)
+
+
+        client_list[conn] = {
+            'socket': conn,
+            'alias': ""
+        }
   
     fileno = 0
     idx = 0
@@ -45,6 +52,15 @@ if __name__ == '__main__':
             files = [f for f in os.listdir(".") if f.endswith(".txt")]
             response = "\n".join(files)
             conn[0].send(response.encode())
+
+        elif data.startswith("REGISTER_ALIAS"):
+            _, alias = data.split(maxsplit=1)  # Extract alias
+            client_info = client_list.get(client_socket)
+            if client_info:
+                client_info['alias'] = alias  # Update alias
+                response = f"Alias registered as {alias}"
+                client_socket.send(response.encode())
+
 
         if not data: 
             continue
