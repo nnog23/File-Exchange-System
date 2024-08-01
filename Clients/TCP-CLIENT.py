@@ -1,6 +1,12 @@
 import socket 
 import argparse
 
+class Client:
+    def __init__(self, socket, address, alias):
+        self.socket = socket
+        self.address = address
+        self.alias = alias
+
 def join_action(sock, host, port):
 
     # Connecting with Server 
@@ -11,6 +17,7 @@ def leave_action(sock):
     sock.close()
     print("Leave command executed!")
 def register_action():
+
     print("Register command executed!")
 # Creating Client Socket 
 if __name__ == '__main__': 
@@ -28,13 +35,12 @@ if __name__ == '__main__':
         if command == '/join':
             print(command)
             join_action(sock, clientinput[1], clientinput[2])
-
         elif command == '/leave':
             leave_action(sock)
         elif command == '/register':
             register_action()
-        elif command == '/help':
-            print("Available commands:\n/join - Executes the join action\n/hello - Executes the hello action\n/exit - Exits the program\n/help - Shows this help message")
+        elif command == '/?':
+            print("Available commands:\n/join - Executes the join action\n/hello - Executes the hello action\n/exit - Exits the program\n/? - Shows this help message")
         else:
             print("Unknown command. Type /help for a list of available commands.")
 

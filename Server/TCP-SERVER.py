@@ -7,25 +7,26 @@ if __name__ == '__main__':
     totalclient = 3
     
     # int(input('Enter number of clients: ')) 
-  
+    
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
     sock.bind((host, port)) 
     sock.listen(totalclient) 
+
+    clients = {}
     # Establishing Connections 
-    connections = [] 
+    client_connections = [] 
     print('Initiating clients') 
     for i in range(totalclient): 
-        conn = sock.accept() 
-        connections.append(conn) 
+        client_socket = sock.accept()
+        client_connections.append(client_socket)
         print('Connected with client', i+1)
-  
+    
     fileno = 0
     idx = 0
-    for conn in connections: 
+    for conn in client_connections: 
         # Receiving File Data 
         idx += 1
         print(conn)
-        data = conn[0].recv(1024).decode() 
   
         if not data: 
             continue
@@ -46,5 +47,5 @@ if __name__ == '__main__':
         print('Received successfully! New filename is:', filename) 
         fo.close() 
     # Closing all Connections 
-    for conn in connections: 
-        conn[0].close() 
+    # for conn in client_connections: 
+    #  conn[0].close() 
