@@ -4,7 +4,9 @@ if __name__ == '__main__':
     # Defining Socket 
     host = '127.0.0.1'
     port = 8080
-    totalclient = int(input('Enter number of clients: ')) 
+    totalclient = 3
+    
+    # int(input('Enter number of clients: ')) 
   
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
     sock.bind((host, port)) 
@@ -15,13 +17,14 @@ if __name__ == '__main__':
     for i in range(totalclient): 
         conn = sock.accept() 
         connections.append(conn) 
-        print('Connected with client', i+1) 
+        print('Connected with client', i+1)
   
     fileno = 0
     idx = 0
     for conn in connections: 
         # Receiving File Data 
         idx += 1
+        print(conn)
         data = conn[0].recv(1024).decode() 
   
         if not data: 
