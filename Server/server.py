@@ -80,6 +80,31 @@ def handle_client(client_socket):
                     client_socket.sendall(response.encode())
                     print('Error: File not found in the server.')
 
+            elif data.startswith("UNICAST"):
+
+                _, target_alias, message = data.split(maxsplit=2)  # Extract target alias and message
+                
+                target_socket = None
+                sender_alias = client_list[client_socket]['alias']
+
+                # Find the target client by alias
+                for socket, info in client_list.items():
+                    if info['alias'] == target_alias:
+                        target_socket = socket
+                        break
+
+                if target_socket:
+                    try:
+                        # Send the message to the target client
+                        target_socket.sendall(f"[UNICAST] From {sender_alias}: {message}\n".encode())
+                        client_socket.sendall(f"Message sent to {target_alias}".encode())
+                        print(f"{sender_alias} sent a message to {target_alias}.")
+                    except Exception as e:
+                        print(f"Error sending unicast message to {target_alias}: {e}")
+                        client_socket.sendall(f"Error sending message to {target_alias}".encode())
+                else:
+                    # Inform the sender that the target client was not found
+                    client_socket.sendall(f"Error: User {target_alias} not found.".encode())
             
             else:
                     print(f"Unknown command: {data}")
@@ -95,7 +120,7 @@ def handle_client(client_socket):
                 print(f"{alias} disconnected.")
             else:
                 print("Client disconnected.")
-                
+
 def main():
     host = '127.0.0.1'
     port = 8080
@@ -120,6 +145,7 @@ def main():
         # Start a new thread to handle the client
         client_thread = threading.Thread(target=handle_client, args=(conn,))
         client_thread.start()
+        
 
     # Cleanup
     for client_socket in client_list.keys():
