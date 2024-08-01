@@ -80,9 +80,22 @@ def handle_client(client_socket):
                     client_socket.sendall(response.encode())
                     print('Error: File not found in the server.')
 
-            
+            elif data.startswith("BROADCAST"):
+                _, message = data.split(maxsplit=1)  # Extract broadcast message
+                alias = client_list[client_socket]['alias']
+                message = f"[BROADCAST] From {alias}: {message}\n"
+
+                print(message)
+                
+                for socket in client_list:
+                    if socket != client_socket:
+                        try:
+                            socket.sendall(message.encode())
+                        except Exception as e:
+                            print(f"Error sending message to client {client_socket}: {e}")
+
             else:
-                    print(f"Unknown command: {data}")
+                print(f"Unknown command: {data}")
 
     finally:
         # Remove the client from the dictionary on disconnection
