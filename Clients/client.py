@@ -1,15 +1,19 @@
 import socket 
 import argparse
 
+connected = 0
+
 def join_action(sock, host, port):
+    global connected
     try:
     # Connecting with Server 
         sock.connect((host, int(port))) 
+        connected = 1
         print("Connection to the File Exchange Server is successful!")
-    
+
     except (socket.error, ValueError) as e:
         print("Error: Connection to the Server has failed! Please check IP Address and Port Number.")
-   
+    
 
 
 def leave_action(sock):
@@ -75,17 +79,18 @@ def getFile(sock, fileName):
     # Split the data into file name and contents
     if '\n' in response:
         file_name, file_contents = response.split('\n', 1)  # Split into file name and contents
-        print(file_contents)
         # Save the file
         with open(file_name, "w") as file:
             file.write(file_contents)
 
-        print(f"Received file: {file_name}")
+        print(f"File received from Server: {file_name}")
         # formatted_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         # response = f"{alias}<{formatted_time}>: Uploaded {file_name}"
         response = f"Uploaded file: {file_name}"
         sock.send(response.encode())
-    print("Get command executed!")
+
+    else:
+        print(response)
 
 
 
@@ -117,19 +122,38 @@ if __name__ == '__main__':
                 print("Error: Disconnection failed. Please connect to the server first.")
 
         elif command == '/register':
-            try:
-            register_action(sock, clientinput[1])
-            except Exception as e:
-                print("Error: Command parameters do not match or is not allowed.")
+            
+            if (connected == 1):
+                try:
+                    register_action(sock, clientinput[1])
+                except Exception as e:
+                    print("Error: Command parameters do not match or is not allowed.")
+            else:
+                print("Error: Registration Failed. Please connect to the server first.")
         elif command == '/store':
-            storeFile(clientinput[1])
+            if (connected == 1):
+                try:
+                    storeFile(clientinput[1])
+                except Exception as e:
+                    print("Error: Command parameters do not match or is not allowed.")
+            else:
+                print("Error: Store Request failed. Please connect to the server first.")
 
         elif command == '/dir':
-            dir(sock)
-
+            if (connected == 1):
+                dir(sock)
+            else:
+                print("Error: Directory Request failed. Please connect to the server first.")
+                
         elif command == '/get':
-            getFile(sock, clientinput[1])
-
+            if (connected == 1):
+                try:
+                    getFile(sock, clientinput[1])
+                except Exception as e:
+                    print("Error: Command parameters do not match or is not allowed.")
+            else:
+                print("Error: Get Request Failed. Please connect to the server first.")
+                
         elif command == '/?':
             print("Available commands:\n/join <server_ip_add> <port> - Connects to the server application\n/leave - Disconnects from the server application\n/register <handle> - Registers a unique handle or alias\n/store <filename> - Send file to server\n/dir - Request directory file list from a server\n/get <filename> - Fetches a file from a server\n/? - Shows this help message")
 

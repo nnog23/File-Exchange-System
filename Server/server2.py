@@ -48,7 +48,7 @@ def handle_client(client_socket):
                     # Save the file
                     with open(file_name, "w") as file:
                         file.write(file_contents)
-
+                    
                     print(f"Received file: {file_name}")
                     formatted_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     response = f"{alias}<{formatted_time}>: Uploaded {file_name}"
@@ -74,10 +74,11 @@ def handle_client(client_socket):
                     response = client_socket.recv(4096).decode()
 
                     print(response)
-
+                
                 except IOError: 
-                    print('You entered an invalid filename! Please enter a valid name') 
-
+                    response = "Error: File not found in the server."
+                    client_socket.sendall(response.encode())
+                    print('Error: File not found in the server.')
 
             
             else:
